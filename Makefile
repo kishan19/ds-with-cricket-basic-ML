@@ -21,11 +21,11 @@ test:  ## Run the test suite
 	uv run pytest
 
 lint:  ## Lint everything, notebooks included
-	uv run ruff check src tests scripts lessons
+	uv run ruff check src tests lessons
 
 fmt:  ## Format everything
-	uv run ruff format src tests scripts
-	uv run ruff check --fix src tests scripts lessons
+	uv run ruff format src tests
+	uv run ruff check --fix src tests lessons
 
 typecheck:  ## Type-check the shared package
 	uv run mypy

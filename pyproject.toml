@@ -76,8 +76,6 @@ ignore = [
 "notebooks/**" = ["E402"]
 # The template ships the standard import block ready to use; unused is the point.
 "lessons/_template/**" = ["E402", "F401"]
-# Lesson prose lives in string literals here — en dashes and quotes are intended.
-"scripts/**" = ["RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.format]
 docstring-code-format = true

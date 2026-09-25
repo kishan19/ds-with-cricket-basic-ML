@@ -1,4 +1,4 @@
-# Lesson 01 — How many will they get from here?
+# Lesson 03 — How many will they get from here?
 
 | | |
 |---|---|
@@ -6,7 +6,7 @@
 | **Cricket question** | Six overs are gone. What will the first-innings total be? |
 | **Data** | IPL ball-by-ball (Cricsheet), 1,214 first innings, 2008–2026 |
 | **Baseline to beat** | Current run rate, extrapolated to 20 overs — what the commentator says |
-| **Sets up** | Lesson 02: venue and opposition features, and how they become leakage |
+| **Sets up** | A later lesson: venue and opposition features, and how they become leakage |
 
 ## In one paragraph
 
@@ -42,5 +42,5 @@ Test set: the most recent 20% of innings by date (222 innings from May 2023).
 
 ```bash
 make data
-uv run jupyter lab lessons/01-powerplay-to-total-linear-regression/lesson.ipynb
+uv run jupyter lab lessons/03-powerplay-to-total-linear-regression/lesson.ipynb
 ```

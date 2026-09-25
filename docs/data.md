@@ -1,9 +1,14 @@
 # Data
 
-## Source
+This repo uses two very different kinds of data, and they are documented
+separately below: **Cricsheet** (public, licensed, every lesson can rely on it)
+and a **proprietary ball-tracking export** (local-only, one lesson depends on
+it, and it is never committed).
 
-All data comes from **[Cricsheet](https://cricsheet.org)** — ball-by-ball JSON
-for most professional cricket, published under
+## Cricsheet — the default source
+
+All scorecard-level data comes from **[Cricsheet](https://cricsheet.org)** —
+ball-by-ball JSON for most professional cricket, published under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 This is a deliberate choice. Cricsheet is openly licensed, versioned, complete
@@ -56,3 +61,32 @@ Data is downloadable and licensed to someone else. The repo commits the *code
 that produces* the tables, which is reproducible and reviewable; the tables
 themselves are build output. `.gitignore` enforces it and pre-commit blocks
 files over 2 MB.
+
+## Ball-tracking data — proprietary, one lesson only
+
+A small number of lessons (currently the K-means one) use per-delivery physics
+— release speed, swing, seam deviation, where the ball pitched and passed the
+stumps — that Cricsheet does not have. There is no public source for this at
+all; it is a proprietary export supplied locally as **`data/raw/data.csv`** and
+read by `cricketml.data.ball_tracking.load_ball_tracking()`.
+
+**This file is never committed, never sampled into a committed artefact, and
+cannot be downloaded by `make data`.** If you don't have it, that one lesson
+won't run — every other lesson is unaffected.
+
+**Required schema** (`cricketml.data.ball_tracking.REQUIRED_COLUMNS`):
+
+| column | meaning |
+|---|---|
+| `release_speed_kph`, `swing_angle`, `deviation` | how the ball moved through the air |
+| `bounce_position_x`, `bounce_angle`, `drop_angle` | length — where and how it bounced |
+| `stumps_position_y` | line — how far off the stumps it passed |
+| `batting_hand`, `bowling_hand`, `bowling_type` | context — held out as labels, never features |
+| `runs`, `wicket` | outcome — held out, checked against clusters afterwards |
+
+A licensed export from a different provider, or a synthetic stand-in, works
+without touching any lesson code as long as it has these columns — that's the
+point of routing every read through `load_ball_tracking()` rather than a
+hardcoded path. `tests/fixtures/ball_tracking_sample.csv` is a small **synthetic**
+dataset (fabricated, not derived from anyone's real export) used to test the
+loader itself, so CI and a fresh clone never need the real file.

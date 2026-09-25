@@ -45,8 +45,11 @@ cd ds-with-cricket-basic-ML
 
 make setup      # uv venv, all deps, pre-commit hooks, Jupyter kernel
 make data       # ~1,250 IPL matches from Cricsheet — takes about 6 seconds
-make lab        # open lessons/01-powerplay-to-total-linear-regression/
+make lab        # open lessons/03-powerplay-to-total-linear-regression/
 ```
+
+(Folder numbers reflect build order, not the phase order below — see the note
+by the curriculum table.)
 
 Needs [uv](https://docs.astral.sh/uv/) and Python 3.11+. `make` on its own lists
 every command.
@@ -58,11 +61,17 @@ every command.
 Eighteen lessons in five phases. Each is one cricket question and one concept,
 and each ends by naming the problem that makes the next one necessary.
 
+> **Folder numbers below are build order, not this table's teaching order** —
+> lesson 01 on disk is K-means (Phase 4, position 12 here); lesson 03 is linear
+> regression (Phase 1, position 01 here). They were made in a different order
+> than they'll be taught in. Reconciling the two is part of a pending numbering
+> pass — until then, follow this table's order, not the folder names.
+
 ### Phase 1 · Reading the game
 
 | # | The question | The concept | |
 |---|---|---|---|
-| 01 | How many will they get from here? | Linear regression, and the baseline it must beat | ✅ [lesson](lessons/01-powerplay-to-total-linear-regression/) |
+| 01 | How many will they get from here? | Linear regression, and the baseline it must beat | ✅ [lesson](lessons/03-powerplay-to-total-linear-regression/) |
 | 02 | Does the ground change the score? | Feature engineering — and how fast it becomes leakage | |
 | 03 | Who is actually the better batter? | The average trap: not-outs, medians, and what a mean hides | |
 | 04 | Is he in form, or just lucky? | Sampling variance and regression to the mean | |
@@ -88,7 +97,7 @@ and each ends by naming the problem that makes the next one necessary.
 
 | # | The question | The concept | |
 |---|---|---|---|
-| 12 | What kind of batter is this? | Clustering and player archetypes | |
+| 12 | Can we find delivery types without being told what they are? | K-means clustering | ✅ [lesson](lessons/01-kmeans-clustering/) |
 | 13 | Can forty stats become three? | PCA and dimensionality reduction | |
 | 14 | Which teams play alike? | Similarity and embeddings | |
 
