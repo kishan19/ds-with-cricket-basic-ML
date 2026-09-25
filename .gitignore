@@ -216,3 +216,21 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --------------------------------------------------------- cricketml ---
+# Data is downloadable and licensed to Cricsheet — it is never committed.
+data/raw/*
+data/interim/*
+data/processed/*
+!data/**/.gitkeep
+
+# Model artefacts and figures are outputs, not sources.
+models/
+reports/figures/*
+!reports/figures/.gitkeep
+
+# Notebook cruft (outputs are stripped by pre-commit, but just in case)
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+
+.DS_Store
