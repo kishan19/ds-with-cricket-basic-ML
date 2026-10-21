@@ -1,5 +1,7 @@
 # Lesson NN — <title>
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/kishan19/ds-with-cricket-basic-ML/blob/main/lessons/NN-short-slug/lesson.ipynb)
+
 | | |
 |---|---|
 | **Concept** | <the ML idea> |

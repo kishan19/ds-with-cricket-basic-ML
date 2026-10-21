@@ -71,5 +71,9 @@ into a curriculum.
 cp -r lessons/_template lessons/NN-short-slug
 ```
 
+Replace `NN-short-slug` in the Colab badge (notebook title cell and `README.md`)
+with the folder name, and point the data line at the end of the Colab setup cell
+at this lesson's data (`tests/test_colab.py` checks the badge).
+
 Then fill in the seven sections, add a row to the roadmap table in the top-level
 `README.md`, and run `make check` before committing.

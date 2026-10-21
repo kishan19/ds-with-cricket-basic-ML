@@ -1,5 +1,7 @@
 # Lesson 03 — How many will they get from here?
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/kishan19/ds-with-cricket-basic-ML/blob/main/lessons/03-powerplay-to-total-linear-regression/lesson.ipynb)
+
 | | |
 |---|---|
 | **Concept** | Linear regression, and the baseline it has to beat |
