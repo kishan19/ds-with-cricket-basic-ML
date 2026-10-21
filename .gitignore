@@ -225,7 +225,7 @@ data/processed/*
 !data/**/.gitkeep
 
 # Model artefacts and figures are outputs, not sources.
-models/
+/models/
 reports/figures/*
 !reports/figures/.gitkeep
 
