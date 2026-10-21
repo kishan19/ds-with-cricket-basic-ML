@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 SOURCE ?= ipl
 
-.PHONY: help setup data lab test lint fmt typecheck check clean
+.PHONY: help setup data hawkeye lab test lint fmt typecheck check clean
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -13,6 +13,9 @@ setup:  ## Create the venv and install everything (uv)
 
 data:  ## Download + flatten a Cricsheet source, e.g. make data SOURCE=t20i
 	uv run cricketml build-data --source $(SOURCE)
+
+hawkeye:  ## Download the IPL Hawk-Eye CSV (github.com/alittlefitness/HawkeyeStats)
+	uv run cricketml build-hawkeye
 
 lab:  ## Start JupyterLab
 	uv run jupyter lab

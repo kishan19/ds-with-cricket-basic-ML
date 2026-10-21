@@ -182,6 +182,16 @@ make data SOURCE=t20i    # also: odi, test, wt20i, wbbl
 Downloads are cached in `data/raw/`; flattened tables land in `data/processed/`.
 Neither is committed — the repo holds the code that produces them.
 
+**Ball tracking** (the K-means lesson only) comes from
+[alittlefitness/HawkeyeStats](https://github.com/alittlefitness/HawkeyeStats):
+Hawk-Eye speed, pitch and stumps positions for every IPL delivery the ICC's feed
+covers, tidied into one CSV by that repo's author. It has no stated licence, so
+it's downloaded rather than committed:
+
+```bash
+make hawkeye
+```
+
 ---
 
 ## Working on it
@@ -212,4 +222,6 @@ Then fill in the seven sections, add the row to the roadmap above, and run
 ## Licence
 
 Code MIT (see [LICENSE](LICENSE)). Data © Cricsheet, CC BY 4.0 — if you reuse the
-charts or derived tables, credit Cricsheet.
+charts or derived tables, credit Cricsheet. Ball-tracking data is Hawk-Eye via
+the ICC, tidied by [alittlefitness/HawkeyeStats](https://github.com/alittlefitness/HawkeyeStats);
+credit that repo, and note it carries no licence of its own.

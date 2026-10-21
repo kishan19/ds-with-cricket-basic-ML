@@ -4,8 +4,8 @@
 |---|---|
 | **Concept** | K-means clustering |
 | **Cricket question** | Does a delivery's physics alone reveal what "kind" of ball it was? |
-| **Data** | Proprietary ball-tracking export, 194,592 deliveries (see the caveat below) |
-| **Baseline to beat** | The broadcast graphic's own pace/spin label — held out, used only to grade the clusters |
+| **Data** | Hawk-Eye ball tracking, 140,233 IPL deliveries, from [alittlefitness/HawkeyeStats](https://github.com/alittlefitness/HawkeyeStats) |
+| **Baseline to beat** | The scorecard's own arm + style label, held out and used only to interpret the clusters |
 | **Sets up** | A later lesson: compressing these features with PCA |
 
 > **Folder number vs. curriculum position.** This is lesson 01 in build order —
@@ -15,52 +15,67 @@
 > pass; until then, treat the number in a folder name as "built Nth," not
 > "watch Nth."
 
-## ⚠️ This lesson cannot be re-run on a fresh clone
+## Data, and credit
 
-Every other lesson in this repo runs on `make data`. This one can't: the
-ball-tracking CSV (`release_speed_kph`, `swing_angle`, `deviation`, bounce/
-crease/stumps position, `bowling_type`, `runs`, `wicket`) is a proprietary
-export that lives only in `data/raw/data.csv` on this machine and is never
-committed. `cricketml.data.ball_tracking.load_ball_tracking()` reads a fixed
-schema, so a licensed or synthetic replacement with the same columns works
-without touching the notebook — see [`docs/data.md`](../../docs/data.md).
+Per-delivery Hawk-Eye numbers for the IPL, collected from the ICC's Pulselive
+feed and tidied into one CSV by
+**[alittlefitness/HawkeyeStats](https://github.com/alittlefitness/HawkeyeStats)**.
+All credit for the data goes there. That repo states no licence, so the file
+isn't committed here. Download it with:
+
+```bash
+make hawkeye
+```
+
+- **Features (5):** `ballSpeed`, `pitchX`, `pitchY`, `stumpsX`, `stumpsY`: speed,
+  where it bounced, and where it passed the stumps
+- **Held out (interpretation only):** `bowler`, and `bowler_type` =
+  `rightArmedBowl` + `bowlingStyle` combined (`RIGHT_FAST_SEAM`,
+  `LEFT_FAST_SEAM`, `LEFT_ORTHODOX`, …)
+- **Dropped:** 8,894 tracker failures (`ballSpeed == -1` or no coordinates) and
+  297 physically impossible readings
 
 ## In one paragraph
 
-Ball-tracking data has no player identity, so this clusters *deliveries*, not
-bowlers, on seven physical measurements — speed, swing, seam deviation, bounce
-and stumps position, bounce angle, drop angle. K-means (K=3, chosen by
-silhouette) rediscovers the pace/spin split almost perfectly without ever being
-shown it, which is the sanity check passing. The genuinely interesting result is
-the third cluster: deliveries a single pace/spin label can't describe at all.
+K-means (K=4, chosen by silhouette) finds spin, then splits pace by **length**,
+not by bowler style: "short of a length" against "full / yorker". Seamers of
+every label land in both. Malinga and Starc lean full, while Bumrah, Steyn and
+Bhuvneshwar lean short. Arm is invisible in these five numbers (ARI 0.005). The
+fourth cluster is the lesson's best surprise: it's 74% *left-handed batters*,
+because Hawk-Eye's `X` coordinates are fixed to the pitch, not to the batter.
+K-means found the batter's stance, not a type of delivery.
 
 ## Result
 
-**Cluster centres** (standardised features, K=3 chosen by silhouette 0.278 vs. 0.268 at K=2):
+| cluster | share | kph | length (m from stumps) | spin share (by label) | left-hand batters |
+|---|---|---|---|---|---|
+| spin | 32% | 91 | 5.3 | 80% | 29% |
+| the other line | 20% | 119 | 5.8 | 25% | **74%** |
+| short of a length | 32% | 132 | 9.0 | 0.3% | 27% |
+| full / yorker | 16% | 133 | 3.4 | 3% | 24% |
 
-| cluster | share | speed (kph) | swing | deviation | bowling_type purity | wicket rate |
-|---|---|---|---|---|---|---|
-| "genuine pace" | 51.8% | 129.9 | +0.17 | −0.01 | **97.1% pace** | 5.0% |
-| "genuine spin" | 23.3% | 89.1 | +1.12 | −2.40 | **93.3% spin** | 4.7% |
-| "neither" | 24.9% | 100.4 | −0.70 | +1.44 | 42% pace / 58% spin | 5.3% |
+Silhouette 0.282 at K=4 (0.265 at K=2, 0.274 at K=5). ARI against the held-out
+labels: pace/spin 0.25, `bowler_type` 0.20 (excluding `*_SEAM`), arm 0.005.
 
-The from-scratch appendix also caught something real: a single random
-initialisation landed in a worse local optimum than scikit-learn's default
-(ARI 0.396 against it), and restarting 10 times and keeping the best (ARI 1.000)
-is exactly why `KMeans` defaults to `n_init=10`. Left in deliberately — a clean
-number the first time would have taught nothing about why that default exists.
+**The validation label has a flaw.** `bowlingStyle == "SEAM"` is upstream's
+fallback, and its arm flag is unreliable. `LEFT_SEAM` is mostly right-armers
+(Mohit Sharma, L Balaji), and `RIGHT_SEAM` includes leg-spinner Samuel Badree.
+Most of the non-spin 20% of the spin cluster comes from those two labels.
+
+The from-scratch appendix shows why `KMeans` defaults to `n_init=10`. Nine of ten
+single random starts agree with scikit-learn (ARI 0.96–1.00); one lands in a
+worse basin (ARI 0.34, higher inertia).
 
 ## Three things worth stealing from this lesson
 
-1. **Validate an unsupervised result against a label you withheld.** Two of
-   three clusters recover pace/spin at 93–97% purity — proof the clustering
-   found something real before trusting the piece it invented.
-2. **The invented cluster is the point.** "Medium pace, sharp turn" isn't a
-   labeling mistake — it's cutters and brisk-armed spin sharing one physical
-   envelope, which a two-bucket broadcast graphic can't represent.
-3. **A single-run from-scratch implementation can silently give the wrong
-   answer.** `n_init=10` isn't scikit-learn being careful for no reason —
-   demonstrated here with a real 0.396 → 1.000 swing on this exact data.
+1. **Audit the validation label before grading against it.** Otherwise
+   upstream's `SEAM` fallback would have looked like K-means' mistake.
+2. **Check what your coordinates are relative to.** A pitch-fixed frame let the
+   batter's stance take over a whole cluster. Mirroring `X` for left-handers is
+   the one-line fix.
+3. **The unit you cluster is the unit you learn about.** Clustering deliveries
+   gives delivery types, like full and short. It can't give bowler types,
+   because every seamer bowls both.
 
 ## Artefacts
 
@@ -70,9 +85,8 @@ number the first time would have taught nothing about why that default exists.
 
 ## Run it
 
-Requires `data/raw/data.csv` locally (see the caveat above).
-
 ```bash
+make hawkeye
 uv run jupyter lab lessons/01-kmeans-clustering/lesson.ipynb
 uv run python lessons/01-kmeans-clustering/make_slides.py
 ```

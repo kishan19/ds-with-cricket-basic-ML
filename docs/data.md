@@ -1,9 +1,10 @@
 # Data
 
-This repo uses two very different kinds of data, and they are documented
-separately below: **Cricsheet** (public, licensed, every lesson can rely on it)
-and a **proprietary ball-tracking export** (local-only, one lesson depends on
-it, and it is never committed).
+This repo uses three kinds of data, documented separately below:
+**Cricsheet** (public and licensed; every lesson can rely on it), **Hawk-Eye
+ball tracking** from the HawkeyeStats repo (public but unlicensed; downloaded
+on demand, never committed), and a **proprietary ball-tracking export**
+(local-only; no lesson currently needs it).
 
 ## Cricsheet — the default source
 
@@ -62,17 +63,61 @@ that produces* the tables, which is reproducible and reviewable; the tables
 themselves are build output. `.gitignore` enforces it and pre-commit blocks
 files over 2 MB.
 
-## Ball-tracking data — proprietary, one lesson only
+## Hawk-Eye ball tracking — HawkeyeStats
 
-A small number of lessons (currently the K-means one) use per-delivery physics
+The K-means lesson uses per-delivery ball tracking from
+**[alittlefitness/HawkeyeStats](https://github.com/alittlefitness/HawkeyeStats)**.
+That repo is a tidy CSV of the Hawk-Eye numbers the ICC's Pulselive API
+(`cricketapi-icc.pulselive.com`) publishes per delivery. It did all of the
+collection and tidying; this repo only downloads `mensIPLHawkeyeStats.csv` and
+cleans it.
+
+```bash
+make hawkeye     # ~20 MB into data/raw/mensIPLHawkeyeStats.csv
+```
+
+**Licence: none stated upstream.** So the CSV is never committed, sampled into a
+committed artefact, or redistributed. It is fetched on demand like Cricsheet.
+Credit the repo on anything derived from it; `cricketml.data.hawkeye.ATTRIBUTION`
+is the chart footer.
+
+**What the lesson uses** (`cricketml.data.hawkeye`):
+
+| column | role | meaning |
+|---|---|---|
+| `ballSpeed` | feature | release speed, m/s (`-1` = tracker failed) |
+| `pitchX`, `pitchY` | feature | where it bounced, m: across the pitch (line), distance from the batter's stumps (length) |
+| `stumpsX`, `stumpsY` | feature | where it passed the stumps, m: across, and height |
+| `bowler` | label | held out, used to interpret clusters |
+| `rightArmedBowl`, `bowlingStyle` | label | combined into `bowler_type`: `RIGHT_FAST_SEAM`, `LEFT_ORTHODOX`, … |
+
+**Two traps, both handled or flagged in code:**
+
+1. **Tracker failures and impossible readings.** About 6% of rows have
+   `ballSpeed == -1` or no coordinates. A few hundred more are physically
+   impossible (for example, a bounce 897 m down a 20 m pitch).
+   `load_hawkeye()` drops anything outside `PLAUSIBLE_RANGES`.
+2. **`bowlingStyle == "SEAM"` is a fallback, and its arm flag is unreliable.**
+   `LEFT_SEAM` is mostly right-armers (Mohit Sharma, L Balaji), and
+   `RIGHT_SEAM` includes a leg-spinner (Samuel Badree). Treat `*_SEAM` as
+   unverified when grading against it. The other six styles check out.
+
+The `X` coordinates are fixed to the pitch, not to the batter. A ball on a
+left-hander's off stump has the opposite sign to the same ball bowled to a
+right-hander.
+
+## Ball-tracking data — proprietary, unused
+
+An earlier version of the K-means lesson used per-delivery physics
 — release speed, swing, seam deviation, where the ball pitched and passed the
 stumps — that Cricsheet does not have. There is no public source for this at
 all; it is a proprietary export supplied locally as **`data/raw/data.csv`** and
 read by `cricketml.data.ball_tracking.load_ball_tracking()`.
 
 **This file is never committed, never sampled into a committed artefact, and
-cannot be downloaded by `make data`.** If you don't have it, that one lesson
-won't run — every other lesson is unaffected.
+cannot be downloaded by `make data`.** No lesson currently needs it; the loader
+is kept for lessons that want swing and seam deviation, which Hawk-Eye's public
+feed doesn't include.
 
 **Required schema** (`cricketml.data.ball_tracking.REQUIRED_COLUMNS`):
 

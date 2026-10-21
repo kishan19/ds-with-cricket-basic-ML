@@ -1,6 +1,7 @@
 """Build the shareable slide deck for this lesson from a live run of the data.
 
-Regenerate after re-running the notebook, or after any change to the analysis:
+Needs the Hawk-Eye CSV (``make hawkeye``). Regenerate after re-running the
+notebook, or after any change to the analysis:
 
     uv run python lessons/01-kmeans-clustering/make_slides.py
 """
@@ -14,22 +15,38 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import adjusted_rand_score, silhouette_score
 from sklearn.preprocessing import StandardScaler
 
 from cricketml import SEED
-from cricketml.data.ball_tracking import PHYSICS_COLUMNS, load_ball_tracking
-from cricketml.viz import CATEGORICAL, use_theme
+from cricketml.data.hawkeye import ATTRIBUTION, FEATURE_COLUMNS, PACE_STYLES, load_hawkeye
+from cricketml.viz import CATEGORICAL, annotate_source, use_theme
 from cricketml.viz.slides import SlideDeck
 
 HERE = Path(__file__).parent
 OUT = HERE / "slides" / "delivery-archetypes-kmeans.pdf"
+MS_TO_KPH = 3.6
+
+
+def name_archetypes(centres: pd.DataFrame) -> dict[int, str]:
+    """Name the K=4 clusters from their centres, not their arbitrary numbers."""
+    spin = centres["ballSpeed"].idxmin()
+    pace = centres.drop(spin)
+    full = pace["pitchY"].idxmin()
+    other_side = pace.drop(full)["pitchX"].idxmax()
+    (length,) = pace.index.difference([full, other_side])
+    return {
+        spin: "spin",
+        full: "full / yorker",
+        length: "short of a length",
+        other_side: "the other line",
+    }
 
 
 def main() -> None:
     use_theme()
-    df = load_ball_tracking()
-    features = list(PHYSICS_COLUMNS)
+    df = load_hawkeye()
+    features = list(FEATURE_COLUMNS)
     X = StandardScaler().fit_transform(df[features])
     rng = np.random.default_rng(SEED)
 
@@ -47,12 +64,20 @@ def main() -> None:
         ]
     )
     best_k = int(curve.loc[curve.silhouette.idxmax(), "k"])
+    if best_k != 4:
+        raise RuntimeError(f"Silhouette now picks K={best_k}; the deck's story assumes K=4.")
 
     final = KMeans(n_clusters=best_k, random_state=SEED, n_init=10).fit(X)
-    df = df.assign(cluster=final.labels_)
-    purity = pd.crosstab(df["cluster"], df["bowling_type"], normalize="index")
-    outcomes = df.groupby("cluster").agg(runs=("runs", "mean"), wicket_rate=("wicket", "mean"))
-    sizes = df["cluster"].value_counts(normalize=True)
+    df = df.assign(
+        cluster=final.labels_,
+        family=np.where(df["bowlingStyle"].isin(PACE_STYLES), "pace", "spin"),
+    )
+    centres = df.groupby("cluster")[features].mean()
+    names = name_archetypes(centres)
+    df["archetype"] = df["cluster"].map(names)
+    trusted = ~df["bowlingStyle"].eq("SEAM")
+    ari_family = adjusted_rand_score(df["family"], df["cluster"])
+    ari_arm = adjusted_rand_score(df.loc[trusted, "rightArmedBowl"], df.loc[trusted, "cluster"])
 
     # --- figure: elbow + silhouette ---
     fig1, axes = plt.subplots(1, 2, figsize=(10, 4))
@@ -64,6 +89,7 @@ def main() -> None:
     axes[1].set_title("Silhouette")
     axes[1].set_xlabel("K")
     fig1.tight_layout()
+    annotate_source(axes[0], text=ATTRIBUTION)
 
     # --- figure: PCA scatter of the chosen K ---
     demo_idx = rng.choice(len(X), size=20_000, replace=False)
@@ -78,66 +104,63 @@ def main() -> None:
             s=6,
             alpha=0.5,
             color=CATEGORICAL[c % len(CATEGORICAL)],
-            label=f"cluster {c}",
+            label=names[c],
         )
     ax2.set_title(f"K = {best_k}, PCA-projected")
     ax2.legend(markerscale=3)
+    annotate_source(ax2, text=ATTRIBUTION)
 
-    # --- results table ---
-    # Name clusters by their dominant label rather than hardcoding an index,
-    # so the deck stays correct if a re-run assigns cluster numbers differently.
-    dominant = purity.idxmax(axis=1)
-    name_counts: dict[str, int] = {}
-    names = {}
-    for c in purity.index:
-        base = "mixed" if purity.loc[c].max() < 0.75 else f"genuine {dominant[c]}"
-        name_counts[base] = name_counts.get(base, 0) + 1
-        names[c] = base if name_counts[base] == 1 else f"{base} ({name_counts[base]})"
-
+    # --- results table, in cricket units ---
+    g = df.groupby("archetype")
     results = pd.DataFrame(
         {
-            "cluster": [names[c] for c in purity.index],
-            "share": [f"{sizes[c]:.1%}" for c in purity.index],
-            "pace %": [
-                f"{purity.loc[c, 'pace']:.1%}" if "pace" in purity.columns else "—"
-                for c in purity.index
-            ],
-            "spin %": [
-                f"{purity.loc[c, 'spin']:.1%}" if "spin" in purity.columns else "—"
-                for c in purity.index
-            ],
-            "wicket rate": [f"{outcomes.loc[c, 'wicket_rate']:.1%}" for c in purity.index],
+            "share": g.size() / len(df),
+            "kph": g["ballSpeed"].mean() * MS_TO_KPH,
+            "length (m)": g["pitchY"].mean(),
+            "spin share": g["family"].apply(lambda f: f.eq("spin").mean()),
+            "left-hand batter": g["rightHandedBat"].apply(lambda r: (~r).mean()),
         }
+    ).sort_values("kph")
+    results = results.reset_index().assign(
+        share=lambda t: t["share"].map("{:.0%}".format),
+        kph=lambda t: t["kph"].map("{:.0f}".format),
+        **{
+            "length (m)": lambda t: t["length (m)"].map("{:.1f}".format),
+            "spin share": lambda t: t["spin share"].map("{:.0%}".format),
+            "left-hand batter": lambda t: t["left-hand batter"].map("{:.0%}".format),
+        },
     )
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with SlideDeck(str(OUT), subtitle="cricketml — a lesson from ds-with-cricket-basic-ML") as deck:
         deck.title(
             "Can we find delivery\ntypes without labels?",
-            "K-means clustering, on real ball-tracking data",
+            "K-means clustering, on real Hawk-Eye data",
         )
         deck.bullets(
             "The cricket question",
             [
-                "A tracker prints speed, swing, seam deviation for every ball.",
+                "Hawk-Eye prints speed, where it pitched, where it passed the stumps.",
                 "Could you tell fast bowler from spinner on those numbers alone?",
-                "Is 'pace or spin' even the only real split?",
+                "Left arm from right arm? Or do the balls group some other way?",
             ],
         )
         deck.bullets(
             "The data",
             [
-                f"{len(df):,} deliveries, 7 physical measurements per ball.",
-                "No player identity — this clusters deliveries, not bowlers.",
-                "bowling_type (pace/spin) is held out — used only to grade clusters.",
+                f"{len(df):,} IPL deliveries, 5 Hawk-Eye measurements per ball.",
+                "Tracker failures and impossible readings dropped (~6%).",
+                "bowler + arm/style held out — used only to interpret clusters.",
+                "Source: github.com/alittlefitness/HawkeyeStats (Hawk-Eye via the ICC).",
             ],
         )
         deck.bullets(
             "The naive answer",
             [
-                "Cricket already has a 2-bucket answer: pace or spin.",
-                "Assigned from the run-up, not the ball's physics.",
-                "Any clustering should recover this before it earns credit for more.",
+                "The scorecard already labels every bowler: arm + style.",
+                "RIGHT_FAST_SEAM, LEFT_ORTHODOX, RIGHT_LEG_SPIN, ...",
+                "Coarsest split, pace vs spin, must be recovered before anything else counts.",
+                "Caveat: the 'SEAM' fallback style has an unreliable arm flag.",
             ],
         )
         deck.figure(
@@ -145,15 +168,17 @@ def main() -> None:
         )
         deck.figure(f"K = {best_k}, projected to 2D", fig2)
         deck.table(
-            "What the clusters found", results, kicker="pace/spin purity was withheld from training"
+            "What the clusters found",
+            results,
+            kicker=f"ARI vs pace/spin {ari_family:.2f}; vs bowling arm {ari_arm:.2f}",
         )
         deck.bullets(
             "What it gets wrong",
             [
-                "Only one label (pace/spin) exists to validate against.",
-                "K chosen by silhouette on a 10k-row subsample, for speed.",
-                "Standardising treats line & length as equal to speed — they aren't, cricket-wise.",
-                "A from-scratch single-init run misses scikit-learn's answer (ARI 0.396) — n_init exists for a reason.",
+                "'The other line' is left-handed batters: X coordinates are pitch-fixed.",
+                "Arm is invisible: release position isn't in these five columns.",
+                "Clusters are deliveries, not bowlers; every seamer bowls full and short.",
+                "Standardising gives line and height the same vote as speed.",
             ],
         )
         deck.closing("Next: compressing these\nfeatures with PCA", "cricketml")
