@@ -3,7 +3,12 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from cricketml.models import CurrentRunRateProjection, MajorityClass, TeamMeanScore
+from cricketml.models import (
+    CurrentRunRateProjection,
+    MajorityClass,
+    RequiredRateRule,
+    TeamMeanScore,
+)
 
 
 def test_run_rate_projection_matches_the_commentator() -> None:
@@ -24,3 +29,10 @@ def test_majority_class_predicts_the_base_rate() -> None:
     y = np.array([0] * 9 + [1])
     model = MajorityClass().fit(np.zeros((10, 1)), y)
     assert np.isclose(model.predict_proba(np.zeros((3, 1)))[:, 1], 0.1).all()
+
+
+def test_required_rate_rule_is_certain_either_way() -> None:
+    X = pd.DataFrame({"current_rate": [10.0, 7.0, 9.0], "required_rate": [9.0, 9.0, 9.0]})
+    p = RequiredRateRule().fit(X).predict_proba(X)[:, 1]
+    # Ahead of the rate, behind it, and exactly on it (which counts as ahead).
+    assert p.tolist() == [1.0, 0.0, 1.0]

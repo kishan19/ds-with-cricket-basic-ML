@@ -13,6 +13,7 @@ def test_match_row_captures_context(match_row: dict) -> None:
     assert match_row["toss_winner"] == "Team A"
     assert match_row["winner"] == "Team A"
     assert match_row["win_by_runs"] == 12
+    assert match_row["method"] is None  # a full match: no rain rule
 
 
 def test_every_delivery_is_a_row(deliveries: pd.DataFrame) -> None:

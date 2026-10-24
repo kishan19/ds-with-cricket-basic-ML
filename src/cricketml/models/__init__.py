@@ -1,5 +1,10 @@
 """Baselines first, then models. In that order, always."""
 
-from cricketml.models.baselines import CurrentRunRateProjection, MajorityClass, TeamMeanScore
+from cricketml.models.baselines import (
+    CurrentRunRateProjection,
+    MajorityClass,
+    RequiredRateRule,
+    TeamMeanScore,
+)
 
-__all__ = ["CurrentRunRateProjection", "MajorityClass", "TeamMeanScore"]
+__all__ = ["CurrentRunRateProjection", "MajorityClass", "RequiredRateRule", "TeamMeanScore"]

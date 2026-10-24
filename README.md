@@ -45,11 +45,8 @@ cd ds-with-cricket-basic-ML
 
 make setup      # uv venv, all deps, pre-commit hooks, Jupyter kernel
 make data       # ~1,250 IPL matches from Cricsheet — takes about 6 seconds
-make lab        # open lessons/03-powerplay-to-total-linear-regression/
+make lab        # open lessons/01-powerplay-to-total-linear-regression/
 ```
-
-(Folder numbers reflect build order, not the phase order below — see the note
-by the curriculum table.)
 
 Needs [uv](https://docs.astral.sh/uv/) and Python 3.11+. `make` on its own lists
 every command.
@@ -58,64 +55,67 @@ every command.
 
 ## The curriculum
 
-Eighteen lessons in five phases. Each is one cricket question and one concept,
+Nineteen lessons in six phases. Each is one cricket question and one concept,
 and each ends by naming the problem that makes the next one necessary.
 
-> **Folder numbers below are build order, not this table's teaching order** —
-> lesson 01 on disk is K-means (Phase 4, position 12 here); lesson 03 is linear
-> regression (Phase 1, position 01 here). They were made in a different order
-> than they'll be taught in. Reconciling the two is part of a pending numbering
-> pass — until then, follow this table's order, not the folder names.
+### Phase 1 · The three foundations
 
-### Phase 1 · Reading the game
+A number, a probability, and a pattern nobody labelled: one of each of the
+three things machine learning does, before anything is refined.
 
 | # | The question | The concept | |
 |---|---|---|---|
-| 01 | How many will they get from here? | Linear regression, and the baseline it must beat | ✅ [lesson](lessons/03-powerplay-to-total-linear-regression/) |
-| 02 | Does the ground change the score? | Feature engineering — and how fast it becomes leakage | |
-| 03 | Who is actually the better batter? | The average trap: not-outs, medians, and what a mean hides | |
-| 04 | Is he in form, or just lucky? | Sampling variance and regression to the mean | |
+| 01 | How many will they get from here? | Linear regression, and the baseline it must beat | ✅ [lesson](lessons/01-powerplay-to-total-linear-regression/) |
+| 02 | Who is winning the chase? | Logistic regression, and why a forecast should be a probability | |
+| 03 | Can we find delivery types without being told what they are? | K-means clustering | |
 
-### Phase 2 · Predicting a number
-
-| # | The question | The concept | |
-|---|---|---|---|
-| 05 | Which of forty player stats actually matter? | Regularisation — ridge, lasso, and collinearity | |
-| 06 | What is a par score on this pitch? | Trees and gradient boosting; non-linearity | |
-| 07 | How sure are we about "they'll get 180"? | Prediction intervals and quantile regression | |
-
-### Phase 3 · Predicting an outcome
+### Phase 2 · Trees
 
 | # | The question | The concept | |
 |---|---|---|---|
-| 08 | Who is winning right now? | Logistic regression and win probability | |
-| 09 | Will this ball be a wicket? | Class imbalance, and why accuracy lies | |
-| 10 | Should they review that LBW? | Precision, recall, and the threshold as a decision | |
-| 11 | Does "70% chance" mean 70%? | Calibration | |
+| 04 | What is a par score on this pitch? | Decision trees, and non-linearity | |
+| 05 | Can many rough guesses beat one careful one? | Random forests and gradient boosting | |
 
-### Phase 4 · Finding structure
+### Phase 3 · Reading the game
 
 | # | The question | The concept | |
 |---|---|---|---|
-| 12 | Can we find delivery types without being told what they are? | K-means clustering | ✅ [lesson](lessons/01-kmeans-clustering/) |
-| 13 | Can forty stats become three? | PCA and dimensionality reduction | |
-| 14 | Which teams play alike? | Similarity and embeddings | |
+| 06 | Does the ground change the score? | Feature engineering — and how fast it becomes leakage | |
+| 07 | Who is actually the better batter? | The average trap: not-outs, medians, and what a mean hides | |
+| 08 | Is he in form, or just lucky? | Sampling variance and regression to the mean | |
 
-### Phase 5 · Earning trust
+### Phase 4 · Sharper predictions
 
 | # | The question | The concept | |
 |---|---|---|---|
-| 15 | Why did the model say that? | Feature importance and SHAP | |
-| 16 | Does winning the toss cause winning? | Causal inference and confounding | |
-| 17 | Why did last year's model stop working? | Distribution shift and monitoring | |
-| 18 | Can we believe a three-innings average? | Bayesian shrinkage and priors | |
+| 09 | Which of forty player stats actually matter? | Regularisation — ridge, lasso, and collinearity | |
+| 10 | How sure are we about "they'll get 180"? | Prediction intervals and quantile regression | |
+| 11 | Will this ball be a wicket? | Class imbalance, and why accuracy lies | |
+| 12 | Should they review that LBW? | Precision, recall, and the threshold as a decision | |
+| 13 | Does "70% chance" mean 70%? | Calibration | |
+
+### Phase 5 · Finding structure
+
+| # | The question | The concept | |
+|---|---|---|---|
+| 14 | Can forty stats become three? | PCA and dimensionality reduction | |
+| 15 | Which teams play alike? | Similarity and embeddings | |
+
+### Phase 6 · Earning trust
+
+| # | The question | The concept | |
+|---|---|---|---|
+| 16 | Why did the model say that? | Feature importance and SHAP | |
+| 17 | Does winning the toss cause winning? | Causal inference and confounding | |
+| 18 | Why did last year's model stop working? | Distribution shift and monitoring | |
+| 19 | Can we believe a three-innings average? | Bayesian shrinkage and priors | |
 
 ---
 
 ## Every lesson has the same seven sections
 
 This is the spine of the whole project, and the reason it should stay readable at
-lesson 18. Full version in **[`docs/lesson-contract.md`](docs/lesson-contract.md)**.
+lesson 19. Full version in **[`docs/lesson-contract.md`](docs/lesson-contract.md)**.
 
 1. **The cricket question** — one sentence, no ML vocabulary
 2. **The data** — the grain, and every exclusion with its reason
@@ -136,7 +136,7 @@ a result until it has beaten something and admitted what it cannot do.
 | Seed is `cricketml.SEED` (1983) | A lesson re-run next year prints the numbers its prose quotes |
 | Baseline before model, always | Complexity is earned, not assumed |
 | Classifiers return probabilities, not labels | The threshold is a cricketing decision, not a default |
-| Charts via `cricketml.viz.use_theme()` | Blue means the same thing in lesson 1 and lesson 18 |
+| Charts via `cricketml.viz.use_theme()` | Blue means the same thing in lesson 1 and lesson 19 |
 | Notebook outputs stripped on commit | Enforced by pre-commit; diffs stay reviewable |
 | If two lessons need it, it moves to `src/` | Lesson code is narrative; shared code is tested |
 
@@ -152,7 +152,7 @@ src/cricketml/
 ├── data/
 │   ├── cricsheet.py     download + flatten Cricsheet JSON → two parquet tables
 │   └── __init__.py      load_matches() / load_deliveries()
-├── features/innings.py  innings totals, powerplay summaries
+├── features/innings.py  innings totals, powerplay summaries, chase states
 ├── models/baselines.py  the rules a model has to beat
 ├── evaluation/
 │   ├── splits.py        temporal_split, season_split, match_group_cv

@@ -96,6 +96,9 @@ def _match_row(match_id: str, info: dict) -> dict:
         "result": outcome.get("result"),
         "win_by_runs": (outcome.get("by") or {}).get("runs"),
         "win_by_wickets": (outcome.get("by") or {}).get("wickets"),
+        # 'D/L' when rain revised the target. The chase was then not for the
+        # first-innings total plus one, so chase lessons must drop these.
+        "method": outcome.get("method"),
         "overs_per_innings": info.get("overs"),
         "balls_per_over": info.get("balls_per_over", 6),
     }
