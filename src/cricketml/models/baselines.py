@@ -14,7 +14,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 
 from cricketml.config import BALLS_PER_OVER
 
-__all__ = ["CurrentRunRateProjection", "MajorityClass", "TeamMeanScore"]
+__all__ = ["CurrentRunRateProjection", "MajorityClass", "RequiredRateRule", "TeamMeanScore"]
 
 
 class CurrentRunRateProjection(BaseEstimator, RegressorMixin):
@@ -93,3 +93,37 @@ class MajorityClass(BaseEstimator, ClassifierMixin):
 
     def predict(self, X) -> np.ndarray:
         return (self.predict_proba(X)[:, 1] >= 0.5).astype(int)
+
+
+class RequiredRateRule(BaseEstimator, ClassifierMixin):
+    """ "They need nine an over and they're going at ten." Ahead of the rate wins.
+
+    The commentator's baseline for a chase: the batting side is favourite when
+    its run rate so far is at least the rate it still needs. It answers with
+    certainty, a probability of 0 or 1, which is exactly what a probabilistic
+    metric such as the Brier score punishes. Stateless, like
+    :class:`CurrentRunRateProjection`.
+
+    Expects a frame with ``current_rate`` and ``required_rate``.
+    """
+
+    def __init__(
+        self, current_col: str = "current_rate", required_col: str = "required_rate"
+    ) -> None:
+        self.current_col = current_col
+        self.required_col = required_col
+
+    def fit(self, X: pd.DataFrame, y: np.ndarray | None = None) -> RequiredRateRule:
+        missing = {self.current_col, self.required_col} - set(X.columns)
+        if missing:
+            raise KeyError(f"Missing columns for the required-rate rule: {sorted(missing)}")
+        self.classes_ = np.array([0, 1])
+        return self
+
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
+        ahead = X[self.current_col].to_numpy(float) >= X[self.required_col].to_numpy(float)
+        p = ahead.astype(float)
+        return np.column_stack([1 - p, p])
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        return self.predict_proba(X)[:, 1].astype(int)

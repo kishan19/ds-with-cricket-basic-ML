@@ -5,6 +5,6 @@ Rule of thumb enforced here: a feature may only use information that existed
 """
 
 from cricketml.features.bowling import bowler_profile
-from cricketml.features.innings import innings_totals, powerplay_summary
+from cricketml.features.innings import chase_states, innings_totals, powerplay_summary
 
-__all__ = ["bowler_profile", "innings_totals", "powerplay_summary"]
+__all__ = ["bowler_profile", "chase_states", "innings_totals", "powerplay_summary"]

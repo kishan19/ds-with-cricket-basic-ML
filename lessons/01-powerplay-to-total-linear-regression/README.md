@@ -1,6 +1,6 @@
-# Lesson 03 — How many will they get from here?
+# Lesson 01 — How many will they get from here?
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/kishan19/ds-with-cricket-basic-ML/blob/main/lessons/03-powerplay-to-total-linear-regression/lesson.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/kishan19/ds-with-cricket-basic-ML/blob/main/lessons/01-powerplay-to-total-linear-regression/lesson.ipynb)
 
 | | |
 |---|---|
@@ -8,7 +8,7 @@
 | **Cricket question** | Six overs are gone. What will the first-innings total be? |
 | **Data** | IPL ball-by-ball (Cricsheet), 1,214 first innings, 2008–2026 |
 | **Baseline to beat** | Current run rate, extrapolated to 20 overs — what the commentator says |
-| **Sets up** | A later lesson: venue and opposition features, and how they become leakage |
+| **Sets up** | Lesson 02: the second innings this lesson drops, where the answer is a probability |
 
 ## In one paragraph
 
@@ -44,5 +44,5 @@ Test set: the most recent 20% of innings by date (222 innings from May 2023).
 
 ```bash
 make data
-uv run jupyter lab lessons/03-powerplay-to-total-linear-regression/lesson.ipynb
+uv run jupyter lab lessons/01-powerplay-to-total-linear-regression/lesson.ipynb
 ```
