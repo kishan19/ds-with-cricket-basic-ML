@@ -234,3 +234,6 @@ reports/figures/*
 *.nbconvert.ipynb
 
 .DS_Store
+
+# Slides are video-production material, never published.
+lessons/*/visuals/
