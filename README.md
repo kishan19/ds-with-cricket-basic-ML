@@ -66,7 +66,7 @@ three things machine learning does, before anything is refined.
 | # | The question | The concept | |
 |---|---|---|---|
 | 01 | How many will they get from here? | Linear regression, and the baseline it must beat | ✅ [lesson](lessons/01-powerplay-to-total-linear-regression/) |
-| 02 | Who is winning the chase? | Logistic regression, and why a forecast should be a probability | |
+| 02 | Who is winning the chase? | Logistic regression, and why a forecast should be a probability || ✅ [lesson](lessons/02-chase-win-probability-logistic-regression/) |
 | 03 | Can we find delivery types without being told what they are? | K-means clustering | |
 
 ### Phase 2 · Trees
